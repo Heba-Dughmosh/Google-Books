@@ -1,25 +1,32 @@
 import React, { useState } from "react";
 import { InputGroup, Input, InputGroupAddon, Button, FormGroup, Label, Spinner } from "reactstrap";
 import axios from "axios";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import BookCard from "./BookCard.js";
 import "./App.css";
 
 function App() {
+
   const [maxResults, setMaxResults] = useState(10);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [cards, setCards] = useState([]);
 
+
   const handleSubmit = () => {
     setLoading(true);
+    if (maxResults > 30 || maxResults < 1) {
+      toast.error('max results must be between 1 - 30');
+      setLoading(false);
+    } else {
     axios
       .get(`https://www.googleapis.com/books/v1/volumes?q=${query}&maxResults=${maxResults}`)
       .then(response => { 
-        response.data.items.length > 0 && 
           setCards(response.data.items);
           setLoading(false);
       })
-      .catch(err => setLoading(true))
+    }
   };
 
 
@@ -30,10 +37,10 @@ function App() {
         <h1 className="display-2 text-center text-white mb-3">Google Books</h1>
         <div className="input-area">
           <InputGroup className="mb-3">
-            <Input placeholder="Book Search" value={query} 
+            <Input autoFocus placeholder="Book Search" value={query} 
                    onChange={e => setQuery(e.target.value)}/>
             <InputGroupAddon addonType="append">
-              <Button color="secondary" onClick={handleSubmit}>
+              <Button color="secondary" type="submit" onClick={handleSubmit}>
                 <i className="fas fa-search"></i>
               </Button>
             </InputGroupAddon>
@@ -73,15 +80,13 @@ function App() {
               language={item.volumeInfo.language}
               authors={item.volumeInfo.authors}
               publisher={item.volumeInfo.publisher}
-              description={item.volumeInfo.description}
               previewLink={item.volumeInfo.previewLink}
-              infoLink={item.volumeInfo.infoLink}
             />
           </div>
         );
       });
       return (
-        <div className="container my-5">
+        <div className="container my-4">
           <div className="row">{items}</div>
         </div>
       );
@@ -89,10 +94,11 @@ function App() {
 
 
   return (
-    <div className="w-100 h-100">
+    <>
       {mainHeader()}
       {handleCards()}
-    </div>
+      <ToastContainer />
+    </>
   );
 }
 
